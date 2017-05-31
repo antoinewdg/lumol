@@ -735,6 +735,12 @@ impl SharedEwald {
         // and finish the simulation.
         self.0.write().expect("Ewald lock is poisonned")
     }
+
+    pub fn density_fft(&self, system: &System) {
+        let mut ewald = self.write();
+        ewald.precompute(&system.cell);
+        ewald.density_fft(system);
+    }
 }
 
 impl Clone for SharedEwald {

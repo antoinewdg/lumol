@@ -38,6 +38,16 @@ fn energy_ewald(bencher: &mut Bencher) {
     })
 }
 
+fn ewald_density_fft(bencher: &mut Bencher) {
+    let system = utils::get_system("water");
+     let ewald = get_ewald();
+
+    bencher.iter(||{
+        let _ = ewald.density_fft(&system);
+    })
+}
+
+
 fn forces_ewald(bencher: &mut Bencher) {
     let system = utils::get_system("water");
     let ewald = get_ewald();
@@ -165,7 +175,7 @@ fn cache_move_all_rigid_molecules_ewald(bencher: &mut Bencher) {
     })
 }
 
-benchmark_group!(ewald, energy_ewald, forces_ewald, virial_ewald);
+benchmark_group!(ewald, energy_ewald, forces_ewald, virial_ewald, ewald_density_fft);
 benchmark_group!(wolf, energy_wolf, forces_wolf, virial_wolf);
 benchmark_group!(monte_carlo_cache,
     cache_move_particles_wolf, cache_move_particles_ewald,
