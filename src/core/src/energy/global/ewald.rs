@@ -6,6 +6,7 @@ use special::Error;
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::f64::consts::{PI, FRAC_2_SQRT_PI};
 use std::f64;
+use std::mem;
 
 use ndarray::Zip;
 
@@ -351,17 +352,19 @@ impl Ewald {
             }
         }
 
-        for ikx in 0..self.kmax {
-            for iky in 0..self.kmax {
-                for ikz in 0..self.kmax {
-                    self.rho[(ikx, iky, ikz)] = Complex::polar(0.0, 0.0);
-                    for j in 0..natoms {
-                        let phi = self.fourier_phases[(ikx, j, 0)] * self.fourier_phases[(iky, j, 1)] * self.fourier_phases[(ikz, j, 2)];
-                        self.rho[(ikx, iky, ikz)] = self.rho[(ikx, iky, ikz)] + system.particle(j).charge * phi;
-                    }
-                }
+        let mut new_rho = Array3::zeros((0, 0, 0));
+        mem::swap(&mut new_rho, &mut self.rho);
+
+
+        Zip::indexed(&mut *new_rho).apply(|(ikx, iky, ikz), rho| {
+            *rho = Complex::zero();
+            for j in 0..natoms {
+                let phi = self.fourier_phases[(ikx, j, 0)] * self.fourier_phases[(iky, j, 1)] * self.fourier_phases[(ikz, j, 2)];
+                *rho = *rho + system.particle(j).charge * phi;
             }
-        }
+        });
+
+        mem::swap(&mut new_rho, &mut self.rho);
     }
 
     /// k-space contribution to the energy
