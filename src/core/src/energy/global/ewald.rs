@@ -356,7 +356,7 @@ impl Ewald {
         mem::swap(&mut new_rho, &mut self.rho);
 
 
-        Zip::indexed(&mut *new_rho).apply(|(ikx, iky, ikz), rho| {
+        Zip::indexed(&mut *new_rho).par_apply(|(ikx, iky, ikz), rho| {
             *rho = Complex::zero();
             for j in 0..natoms {
                 let phi = self.fourier_phases[(ikx, j, 0)] * self.fourier_phases[(iky, j, 1)] * self.fourier_phases[(ikz, j, 2)];
